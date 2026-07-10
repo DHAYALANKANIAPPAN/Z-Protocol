@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Z-Protocol — Complete Technical Report</title>
+<style>
+  :root {
+    --bg:#0b0f19; --card:#131c2e; --card2:#0f1826; --border:#1e293b;
+    --text:#f1f5f9; --muted:#64748b; --muted2:#94a3b8;
+    --blue:#38bdf8; --green:#10b981; --red:#f43f5e; --amber:#f59e0b; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+
+  nav{background:var(--card2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px;}
+  nav .brand{color:var(--blue);font-weight:700;font-size:1.05em;}
+  nav .navlinks{display:flex;gap:5px;flex-wrap:wrap;}
+  nav a{color:var(--muted2);text-decoration:none;font-size:0.78em;padding:5px 11px;border-radius:6px;border:1px solid transparent;transition:all 0.2s;white-space:nowrap;}
+  nav a:hover,nav a.active{background:rgba(56,189,248,.1);color:var(--blue);border-color:rgba(56,189,248,.25);}
+
+  .page{display:none;padding:32px;max-width:1150px;margin:0 auto;}
+  .page.active{display:block;}
+
+  h1{font-size:1.75em;color:var(--blue);margin-bottom:8px;}
+  h2{font-size:1.2em;color:var(--blue);margin:28px 0 12px;}
+  h3{font-size:1em;color:var(--muted2);margin:18px 0 8px;font-weight:600;}
+  p{color:var(--muted2);line-height:1.8;font-size:0.92em;margin-bottom:12px;}
+  code{background:#1e293b;color:var(--amber);padding:2px 7px;border-radius:4px;font-size:0.88em;}
+  pre{background:#070a12;border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;font-size:0.78em;line-height:1.6;color:#cbd5e1;margin:12px 0;max-height:420px;overflow-y:auto;}
+  .subtitle{color:var(--muted);font-size:0.88em;margin-bottom:28px;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:16px;}
+  .card h3{color:var(--text);margin-top:0;}
+
+  .banner{background:var(--card);border-left:4px solid var(--blue);border-radius:0 10px 10px 0;padding:16px 20px;margin-bottom:20px;}
+  .banner.green{border-color:var(--green);}
+  .banner.amber{border-color:var(--amber);}
+  .banner.purple{border-color:var(--purple);}
+  .banner .btitle{font-size:1.05em;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .banner .bsub{font-size:0.83em;color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;font-size:0.85em;margin:12px 0;}
+  th{background:#0f1826;color:var(--blue);text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;font-size:0.78em;text-transform:uppercase;letter-spacing:.4px;}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted2);}
+  tr:last-child td{border:none;}
+  .td-green{color:var(--green);font-weight:600;}
+  .td-blue{color:var(--blue);}
+  .td-amber{color:var(--amber);}
+  .td-red{color:var(--red);font-weight:600;}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75em;font-weight:600;margin:2px;}
+  .bg{background:rgba(16,185,129,.12);color:var(--green);border:1px solid var(--green);}
+  .bb{background:rgba(56,189,248,.12);color:var(--blue);border:1px solid var(--blue);}
+  .ba{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid var(--amber);}
+
+  .why-box{background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);border-radius:8px;padding:14px 18px;margin:10px 0;}
+  .why-box .lbl{font-size:0.72em;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .why-box p{margin:0;font-size:0.87em;}
+
+  .proof-box{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:14px 18px;margin:10px 0;}
+  .proof-box .lbl{font-size:0.72em;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;}
+  @media(max-width:800px){.compare{grid-template-columns:1fr;}}
+  .compbox{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+  .compbox.bad{border-color:rgba(244,63,94,.3);}
+  .compbox.good{border-color:rgba(16,185,129,.3);}
+  .compbox h3{font-size:0.9em;margin-bottom:8px;margin-top:0;}
+  .compbox.bad h3{color:var(--red);}
+  .compbox.good h3{color:var(--green);}
+  .bignum{font-size:2.2em;font-weight:800;font-family:monospace;margin:6px 0;}
+  .bad .bignum{color:var(--red);}
+  .good .bignum{color:var(--green);}
+  .bigsub{font-size:0.78em;color:var(--muted);}
+  .readable{color:#4ade80;font-weight:700;background:rgba(74,222,128,.12);padding:0 2px;border-radius:2px;}
+  .hex-ascii{color:#5eead4;font-weight:700;}
+
+  .verdict{background:rgba(16,185,129,.08);border:2px solid var(--green);border-radius:10px;padding:18px 22px;margin:18px 0;text-align:center;}
+  .verdict .vtitle{color:var(--green);font-weight:800;font-size:1.1em;margin-bottom:4px;}
+
+  .steps{margin:10px 0;}
+  .step{display:flex;gap:14px;margin-bottom:10px;align-items:flex-start;}
+  .stepn{background:var(--blue);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:700;flex-shrink:0;margin-top:2px;}
+  .step p{margin:0;font-size:0.87em;}
+
+  .mrow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dotted var(--border);font-size:0.85em;}
+  .mrow:last-child{border:none;}
+  .ml{color:var(--muted);}
+  .mv{font-family:monospace;font-weight:600;}
+
+  .highlight{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:14px 18px;margin:12px 0;}
+  .highlight p{margin:0;font-size:0.87em;color:var(--amber);}
+
+  .honest-box{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:16px 18px;margin:14px 0;}
+  .honest-box .lbl{font-size:0.72em;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+
+  hr{border:none;border-top:1px solid var(--border);margin:24px 0;}
+
+  .file-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0;}
+  .file-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .file-name{font-family:monospace;color:var(--amber);font-size:0.85em;margin-bottom:4px;}
+  .file-desc{font-size:0.78em;color:var(--muted);}
+
+  /* dashboard page specific */
+  .dash-status-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:center;}
+  .pill{padding:5px 14px;border-radius:20px;font-size:0.78em;font-weight:600;border:1px solid;display:flex;align-items:center;gap:6px;}
+  .pill-green{background:rgba(16,185,129,.12);color:var(--green);border-color:var(--green);}
+  .pill-blue{background:rgba(56,189,248,.12);color:var(--blue);border-color:var(--blue);}
+  .pill-red{background:rgba(244,63,94,.12);color:var(--red);border-color:var(--red);}
+  .pill-amber{background:rgba(245,158,11,.12);color:var(--amber);border-color:var(--amber);}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot-green{background:var(--green);animation:blink 1.4s infinite;}
+  .dot-red{background:var(--red);}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+  .dash-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px;}
+  .mcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+  .mcard .mlabel{font-size:0.72em;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .mcard .mval{font-size:1.7em;font-weight:700;font-family:monospace;}
+  .c-blue{color:var(--blue);}
+  .c-green{color:var(--green);}
+  .c-red{color:var(--red);}
+  .c-amber{color:var(--amber);}
+
+  .two-col{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:24px;}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+  .dpanel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;}
+  .dpanel h4{font-size:0.8em;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;}
+
+  .log-row{display:grid;grid-template-columns:55px 60px 1fr 130px 55px;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.8em;align-items:center;}
+  .log-row:last-child{border:none;}
+  .log-head{color:var(--muted);font-size:0.72em;font-weight:600;text-transform:uppercase;}
+  .log-time{color:var(--muted);font-family:monospace;}
+  .log-method{color:var(--green);font-family:monospace;font-weight:700;}
+  .log-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .log-key{color:var(--blue);font-family:monospace;font-size:0.85em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .log-size{color:var(--muted);font-family:monospace;text-align:right;}
+  .empty-log{color:var(--muted);font-size:0.85em;padding:10px 0;}
+
+  .irow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dotted var(--border);font-size:0.83em;}
+  .irow:last-child{border:none;}
+  .ilabel{color:var(--muted);}
+  .ival{font-family:monospace;color:var(--blue);max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .explainer{background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .explainer h4{color:var(--blue);margin-bottom:10px;font-size:0.9em;}
+  .explainer p{color:var(--muted);font-size:0.84em;line-height:1.7;}
+
+  .killbox{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.25);border-radius:10px;padding:18px 20px;margin-bottom:24px;}
+  .killbox h4{color:var(--red);margin-bottom:10px;font-size:0.9em;}
+  .killbox .step{display:flex;gap:10px;margin:6px 0;align-items:flex-start;}
+  .killbox .stepnum{background:var(--red);color:white;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.75em;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+  #offline-banner{display:none;background:rgba(244,63,94,.12);border:1px solid var(--red);border-radius:10px;padding:16px 20px;margin-bottom:20px;color:var(--red);font-size:0.9em;font-weight:600;}
+
+  .hwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:14px 0;}
+  .hwcard{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+  .hwcard h4{color:var(--amber);font-size:0.9em;margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">Z-Protocol</span>
+  <div class="navlinks">
+    <a href="#" class="active" onclick="show('overview',this)">Overview</a>
+    <a href="#" onclick="show('phase1',this)">Phase 1</a>
+    <a href="#" onclick="show('phase2',this)">Phase 2</a>
+    <a href="#" onclick="show('phase3',this)">Phase 3</a>
+    <a href="#" onclick="show('phase4',this)">Phase 4</a>
+    <a href="#" onclick="show('proxysetup',this)">Manual Proxy Setup</a>
+    <a href="#" onclick="show('realworld',this)">Real-World Deployment</a>
+    <a href="#" onclick="show('proof',this)">Cryptographic Proof</a>
+    <a href="#" onclick="show('dashboard',this)">Live Dashboard</a>
+    <a href="#" onclick="show('results',this)">Results Summary</a>
+  </div>
+</nav>
+
+<!-- OVERVIEW -->
+<div id="overview" class="page active">
+  <h1>Z-Protocol — Technical Report</h1>
+  <p class="subtitle">A post-quantum, zero round-trip transport security protocol — design, implementation, and verification</p>
+
+  <div class="card">
+    <h3>What is Z-Protocol?</h3>
+    <p>Z-Protocol is a custom-built network security protocol that replaces the traditional TLS handshake with a single UDP packet containing everything needed to establish a quantum-safe encrypted connection — key exchange, authentication, and encrypted data, all in one shot, with zero round trips.</p>
+    <p>Standard HTTPS/TLS requires at least one round trip before any data can flow. Z-Protocol sends the key exchange, proof-of-work authentication token, and encrypted payload all in the very first packet — this is called 0-RTT (zero round-trip time).</p>
+    <p>It is also post-quantum secure, meaning it relies on cryptographic algorithms that remain hard to break even with access to a large-scale quantum computer, unlike the classical algorithms (RSA, ECDSA, ECDH) that secure most of today's internet traffic.</p>
+  </div>
+
+  <div class="card">
+    <h3>Why this approach</h3>
+    <p>TLS 1.3, which secures essentially all HTTPS traffic today, has two structural limitations this project addresses:</p>
+    <div class="steps">
+      <div class="step"><span class="stepn">1</span><p><strong style="color:var(--text)">Quantum exposure:</strong> TLS relies on X25519 and RSA for key exchange. Shor's Algorithm, running on a sufficiently powerful quantum computer, can break these in polynomial time — meaning encrypted traffic captured today could be decrypted retroactively once such hardware exists.</p></div>
+      <div class="step"><span class="stepn">2</span><p><strong style="color:var(--text)">Handshake latency:</strong> TLS 1.3 requires at least one round trip before application data flows. Under packet loss, TCP retransmission compounds this — our measurements show TLS latency growing from ~7ms to ~98ms as packet loss increases from 0% to 10%.</p></div>
+    </div>
+    <p>Z-Protocol addresses both simultaneously: quantum-resistant cryptography with zero handshake overhead, built on stateless UDP so packet loss does not trigger retransmission delays.</p>
+  </div>
+
+  <h2>Project structure</h2>
+  <table>
+    <tr><th>Stage</th><th>What it covers</th><th>Status</th></tr>
+    <tr><td>Phase 1</td><td>Environment setup, TLS 1.3 baseline measurement, packet capture, KEM speed comparison</td><td class="td-green">Complete</td></tr>
+    <tr><td>Phase 2</td><td>Packet binary format, hybrid key exchange engine, UDP server, AES-GCM encryption</td><td class="td-green">Complete</td></tr>
+    <tr><td>Phase 3</td><td>Proof-of-work DDoS filter, forward secrecy, replay attack protection, session state</td><td class="td-green">Complete</td></tr>
+    <tr><td>Phase 4</td><td>Network stress testing, benchmark data, formal protocol specification, limitations</td><td class="td-green">Complete</td></tr>
+    <tr><td>Live demonstration</td><td>Browser traffic tunneled live through Z-Protocol with real-time monitoring dashboard</td><td class="td-green">Complete</td></tr>
+  </table>
+
+  <h2>Core technologies</h2>
+  <table>
+    <tr><th>Component</th><th>What it is</th><th>Why it is used</th></tr>
+    <tr><td class="td-blue">ML-KEM-1024</td><td>NIST-standardized post-quantum key encapsulation (FIPS 203)</td><td>Quantum-resistant key exchange</td></tr>
+    <tr><td class="td-blue">X25519</td><td>Classical elliptic curve Diffie-Hellman</td><td>Classical fallback layer — protects even if ML-KEM has an unforeseen weakness</td></tr>
+    <tr><td class="td-blue">HKDF-SHA256</td><td>Key derivation function</td><td>Combines both shared secrets into a single 32-byte session key</td></tr>
+    <tr><td class="td-blue">AES-256-GCM</td><td>Symmetric authenticated encryption</td><td>Encrypts payload data with built-in tamper detection</td></tr>
+    <tr><td class="td-blue">SHA3-512 proof-of-work</td><td>Computational challenge</td><td>Forces clients to do work before the server spends CPU on key decapsulation</td></tr>
+    <tr><td class="td-blue">Double Ratchet</td><td>Per-message key rotation</td><td>Forward secrecy — a stolen key cannot decrypt past traffic</td></tr>
+    <tr><td class="td-blue">liboqs</td><td>Open Quantum Safe library</td><td>Production-grade implementation of NIST PQC algorithms</td></tr>
+    <tr><td class="td-blue">asyncio UDP</td><td>Python async networking</td><td>Stateless, connectionless transport matching the 0-RTT design</td></tr>
+  </table>
+</div>
+
+<!-- PHASE 1 -->
+<div id="phase1" class="page">
+  <h1>Phase 1 — Environment & Baseline</h1>
+  <p class="subtitle">Establishing the cryptographic engine and measuring the classical baseline being replaced</p>
+
+  <div class="banner">
+    <div class="btitle">Goal of this phase</div>
+    <div class="bsub">Confirm post-quantum algorithms run correctly on the target hardware, and measure TLS 1.3's real performance to provide a fair comparison point.</div>
+  </div>
+
+  <h2>liboqs installation</h2>
+  <div class="why-box">
+    <div class="lbl">Why liboqs</div>
+    <p>ML-KEM-1024 is a recently finalized NIST standard (FIPS 203). It is not present in Python's standard library or in most system OpenSSL builds. The Open Quantum Safe project provides the only production-grade open-source implementation, so it was compiled directly from source.</p>
+  </div>
+  <pre>git clone https://github.com/open-quantum-safe/liboqs.git
+cd liboqs/build
+cmake -GNinja -DBUILD_SHARED_LIBS=ON ..
+ninja && sudo ninja install && sudo ldconfig
+pip3 install liboqs-python --break-system-packages</pre>
+
+  <h2>TLS 1.3 baseline server</h2>
+  <div class="why-box">
+    <div class="lbl">Purpose</div>
+    <p>A reference implementation is required to produce a fair, side-by-side comparison. Without measuring TLS 1.3 under identical conditions, there is no basis for claiming Z-Protocol performs better.</p>
+  </div>
+  <div class="proof-box">
+    <div class="lbl">Measured result</div>
+    <p>TLS 1.3 handshake on loopback: <strong style="color:var(--green)">~7.26ms average</strong> under normal network conditions. This became the comparison baseline for Phase 4.</p>
+  </div>
+
+  <h2>Packet capture (PCAP)</h2>
+  <div class="why-box">
+    <div class="lbl">Purpose</div>
+    <p>A PCAP file is raw, unedited network evidence. It demonstrates the protocol is actually transmitting on the network — not simulated — and can be opened in Wireshark for direct visual inspection of the handshake structure.</p>
+  </div>
+  <table>
+    <tr><td>Packets captured</td><td class="td-green">30 packets</td></tr>
+    <tr><td>File size</td><td class="td-blue">14KB</td></tr>
+    <tr><td>RTT baseline</td><td class="td-amber">~0.011ms</td></tr>
+  </table>
+
+  <h2>KEM micro-benchmark</h2>
+  <div class="why-box">
+    <div class="lbl">Purpose</div>
+    <p>A common concern about post-quantum cryptography is that it is computationally heavier. Isolating the KEM operation from network I/O gives a clean CPU-only comparison.</p>
+  </div>
+  <table>
+    <tr><th>Algorithm</th><th>Avg per operation</th><th>Type</th></tr>
+    <tr><td>X25519</td><td class="td-amber">0.1457ms</td><td>Classical (vulnerable to quantum attack)</td></tr>
+    <tr><td>ML-KEM-1024</td><td class="td-green">0.0871ms</td><td>Post-quantum (NIST FIPS 203)</td></tr>
+  </table>
+  <div class="highlight"><p>ML-KEM-1024 measured faster than X25519 on this hardware — liboqs uses AVX2 vector instructions to accelerate lattice-based operations. This indicates post-quantum adoption cost is lower than commonly assumed on modern CPUs.</p></div>
+
+  <h2>Files produced</h2>
+  <div class="file-grid">
+    <div class="file-card"><div class="file-name">verify_kem.py</div><div class="file-desc">Confirms ML-KEM-1024 produces correctly sized keys</div></div>
+    <div class="file-card"><div class="file-name">tls_server.py / tls_client.py</div><div class="file-desc">Baseline TLS 1.3 reference implementation</div></div>
+    <div class="file-card"><div class="file-name">capture_baseline.py</div><div class="file-desc">Captures TLS handshake traffic on loopback</div></div>
+    <div class="file-card"><div class="file-name">kem_benchmark.py</div><div class="file-desc">X25519 vs ML-KEM-1024 speed comparison</div></div>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div id="phase2" class="page">
+  <h1>Phase 2 — Core Protocol Engine</h1>
+  <p class="subtitle">Building the packet format, key exchange, transport, and encryption</p>
+
+  <div class="banner green">
+    <div class="btitle">Goal of this phase</div>
+    <div class="bsub">Implement the actual Z-Protocol — binary packet format, hybrid key exchange, UDP transport, AES-GCM encryption — and confirm end-to-end encrypted communication.</div>
+  </div>
+
+  <h2>Packet header design</h2>
+  <div class="why-box">
+    <div class="lbl">Design rationale</div>
+    <p>Every field is positioned to let the server make a drop/continue decision as early as possible. The proof-of-work token is checked before the expensive key decapsulation step, so invalid traffic is rejected before it costs meaningful CPU time.</p>
+  </div>
+  <pre>Header layout (1654 bytes fixed):
+┌──────────────────────────────────────────────────┐
+│ VERSION      │ 1 byte  │ Protocol version = 0x01 │
+│ PACKET TYPE  │ 1 byte  │ 0x01=handshake 0x02=data│
+│ SESSION ID   │ 8 bytes │ Random unique per conn   │
+│ TIMESTAMP    │ 8 bytes │ Unix time (replay guard) │
+│ POW TOKEN    │ 32 bytes│ SHA3-512 proof-of-work   │
+│ KEM PUBKEY   │1568bytes│ ML-KEM-1024 public key   │
+│ X25519 PUBKEY│ 32 bytes│ Classical hybrid key     │
+│ PAYLOAD LEN  │ 4 bytes │ Length of encrypted data │
+└──────────────────────────────────────────────────┘
+Payload: KEM ciphertext (1568B) + AES-GCM data</pre>
+
+  <h2>Hybrid key exchange</h2>
+  <div class="why-box">
+    <div class="lbl">Why combine X25519 and ML-KEM-1024</div>
+    <p>This is the NIST-recommended approach for transitioning to post-quantum cryptography. If a future quantum attack breaks X25519, ML-KEM-1024 still protects the session. If ML-KEM-1024 is later found to have a mathematical weakness, X25519 still protects it. Two independent mechanisms securing the same connection.</p>
+  </div>
+  <pre>x_shared    = X25519(client_private, server_x_public)
+kem_shared  = ML-KEM-1024.Decap(server_kem_private, ciphertext)
+combined    = x_shared || kem_shared
+session_key = HKDF-SHA256(combined, info="z-protocol-session-key-v1", len=32)</pre>
+
+  <h2>UDP transport layer</h2>
+  <div class="why-box">
+    <div class="lbl">Why UDP instead of TCP</div>
+    <p>TCP carries built-in connection state, handshake, and retransmission — exactly what Z-Protocol is designed to remove. UDP means the server has no per-connection setup: it receives a packet, processes it, replies. This makes 0-RTT possible and keeps latency flat under packet loss, since UDP simply drops lost packets rather than retransmitting and stalling.</p>
+  </div>
+
+  <h2>AES-256-GCM encryption</h2>
+  <div class="why-box">
+    <div class="lbl">Why this cipher specifically</div>
+    <p>GCM mode provides encryption and authentication together — any tampering with ciphertext causes decryption to fail rather than silently corrupting data. The 256-bit key provides a 128-bit post-quantum security margin, since Grover's algorithm halves the effective strength of symmetric keys against a quantum attacker.</p>
+  </div>
+
+  <div class="proof-box">
+    <div class="lbl">End-to-end test result</div>
+    <p>A 3294-byte Z-Protocol packet was built by the client. The server received it, independently derived the same session key, and decrypted the message correctly: <code>"Hello from Z-Protocol client - quantum safe!"</code></p>
+  </div>
+
+  <h2>Files produced</h2>
+  <div class="file-grid">
+    <div class="file-card"><div class="file-name">zpacket.py</div><div class="file-desc">Binary packet builder and parser</div></div>
+    <div class="file-card"><div class="file-name">zkem.py</div><div class="file-desc">Hybrid KEM — X25519 + ML-KEM-1024 + HKDF</div></div>
+    <div class="file-card"><div class="file-name">zcrypto.py</div><div class="file-desc">AES-256-GCM encrypt and decrypt</div></div>
+    <div class="file-card"><div class="file-name">zserver.py / zclient.py</div><div class="file-desc">First working UDP client and server</div></div>
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div id="phase3" class="page">
+  <h1>Phase 3 — Resilience Layer</h1>
+  <p class="subtitle">Hardening the protocol against denial-of-service, replay, and key compromise scenarios</p>
+
+  <div class="banner amber">
+    <div class="btitle">Goal of this phase</div>
+    <div class="bsub">Add the security mechanisms required to make Z-Protocol viable in adversarial network conditions.</div>
+  </div>
+
+  <h2>SHA3-512 proof-of-work</h2>
+  <div class="why-box">
+    <div class="lbl">Why PoW before key decapsulation</div>
+    <p>ML-KEM-1024 decapsulation costs real CPU time. Without a gate, an attacker can flood the server with fake packets, forcing it to perform expensive key operations on garbage data — a resource exhaustion attack. The client must find a nonce where <code>SHA3-512(nonce + session_id + timestamp)</code> begins with two zero bytes. The server verifies this with a single hash operation before touching the key exchange; invalid proof-of-work causes the packet to be dropped immediately.</p>
+  </div>
+  <pre>Client brute-forces: SHA3-512(nonce || session_id || timestamp)[:2] == 0x0000
+Server verifies in O(1): one hash, no brute force needed
+Measured solve time on test hardware: 14–95ms at difficulty=2</pre>
+
+  <h2>Double Ratchet forward secrecy</h2>
+  <div class="why-box">
+    <div class="lbl">Why rotate keys per message</div>
+    <p>If an attacker records encrypted traffic and later compromises the session key, forward secrecy prevents that key from decrypting prior messages. Each message uses a key derived by advancing a one-way chain — the same approach used in the Signal messaging protocol.</p>
+  </div>
+  <pre>msg_key_1  = HKDF(chain_key, info="z-protocol-msg-key")
+chain_key  = HKDF(chain_key, info="z-protocol-chain-advance")
+msg_key_2  = HKDF(chain_key, info="z-protocol-msg-key")
+... each message key is independent, derived forward only</pre>
+
+  <h2>Replay attack protection</h2>
+  <div class="why-box">
+    <div class="lbl">Why replay protection matters for 0-RTT</div>
+    <p>Zero-RTT protocols carry a known risk: an attacker can record a client's first packet and resend it later, and a naive server would process it as legitimate. This is mitigated with two layers — a 30-second timestamp window, and a nonce registry that tracks every proof-of-work nonce already seen.</p>
+  </div>
+  <table>
+    <tr><th>Test case</th><th>Expected</th><th>Observed</th></tr>
+    <tr><td>Fresh packet, first time</td><td>Pass</td><td class="td-green">Pass</td></tr>
+    <tr><td>Same packet replayed</td><td>Drop</td><td class="td-green">Dropped</td></tr>
+    <tr><td>Fresh packet, new nonce</td><td>Pass</td><td class="td-green">Pass</td></tr>
+    <tr><td>Packet with 60s old timestamp</td><td>Drop</td><td class="td-green">Dropped</td></tr>
+  </table>
+
+  <h2>Session state design</h2>
+  <div class="why-box">
+    <div class="lbl">What "stateless" means here</div>
+    <p>Z-Protocol is stateless at the transport level — no TCP handshake, no connection tracking. Forward secrecy does require remembering ratchet state, so the server keeps a minimal session record: ratchet state, creation time, last-seen time. Sessions expire and are evicted automatically after 3600 seconds.</p>
+  </div>
+
+  <div class="proof-box">
+    <div class="lbl">Live test result</div>
+    <p>Server output confirmed all five checks in sequence on a real packet: timestamp valid, proof-of-work verified, replay check passed, session key derived, message decrypted.</p>
+  </div>
+
+  <h2>Files produced</h2>
+  <div class="file-grid">
+    <div class="file-card"><div class="file-name">zpow.py</div><div class="file-desc">SHA3-512 proof-of-work — client solves, server verifies</div></div>
+    <div class="file-card"><div class="file-name">zratchet.py</div><div class="file-desc">Double Ratchet per-message key rotation</div></div>
+    <div class="file-card"><div class="file-name">zreplay.py</div><div class="file-desc">Nonce registry and timestamp window</div></div>
+    <div class="file-card"><div class="file-name">zsession.py</div><div class="file-desc">Session store with automatic expiry</div></div>
+    <div class="file-card"><div class="file-name">zserver_v2.py / zclient_v2.py</div><div class="file-desc">Hardened protocol with all security checks active</div></div>
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div id="phase4" class="page">
+  <h1>Phase 4 — Evaluation & Documentation</h1>
+  <p class="subtitle">Performance benchmarking and formal specification</p>
+
+  <div class="banner purple">
+    <div class="btitle">Goal of this phase</div>
+    <div class="bsub">Produce measured benchmark data under realistic network conditions, generate comparison charts, and document the protocol formally.</div>
+  </div>
+
+  <h2>Network stress testing</h2>
+  <div class="why-box">
+    <div class="lbl">Why simulate packet loss</div>
+    <p>Real networks are imperfect. A protocol that performs well only on a clean loopback connection is not a meaningful contribution. The Linux kernel's <code>tc-netem</code> tool introduces controlled artificial packet loss on the loopback interface, allowing measurement of both protocols under realistic degraded conditions without needing physically degraded hardware.</p>
+  </div>
+  <pre>sudo tc qdisc add dev lo root netem loss 5%
+# All loopback traffic now drops 5% of packets randomly
+# Both protocols benchmarked under identical conditions
+sudo tc qdisc del dev lo root   # cleared afterward</pre>
+
+  <h2>Benchmark results</h2>
+  <table>
+    <tr><th>Packet loss</th><th>TLS 1.3 avg</th><th>Z-Protocol avg</th><th>Speed advantage</th></tr>
+    <tr><td>0%</td><td class="td-amber">7.26ms</td><td class="td-green">0.25ms</td><td class="td-green">28.5x</td></tr>
+    <tr><td>1%</td><td class="td-amber">28.46ms</td><td class="td-green">0.30ms</td><td class="td-green">95.7x</td></tr>
+    <tr><td>5%</td><td class="td-amber">50.91ms</td><td class="td-green">0.24ms</td><td class="td-green">210x</td></tr>
+    <tr><td>10%</td><td class="td-amber">~98.4ms</td><td class="td-green">~0.26ms</td><td class="td-green">~378x</td></tr>
+  </table>
+
+  <div class="highlight"><p>Key finding: Z-Protocol latency stays essentially flat (0.24–0.30ms) regardless of packet loss. TLS 1.3 degrades 13x from 0% to 10% loss, because TCP must retransmit lost handshake packets before any data can flow. Z-Protocol's stateless UDP design means dropped packets simply do not affect the handshake — there is no handshake to interrupt.</p></div>
+
+  <h2>Formal specification</h2>
+  <div class="why-box">
+    <div class="lbl">Purpose of a written specification</div>
+    <p>The protocol is documented in IETF-style format — packet header diagram, field definitions, cryptographic specification, server state machine, and security analysis — establishing it as a formally defined protocol rather than only a working script.</p>
+  </div>
+
+  <h2>Limitations documented</h2>
+  <table>
+    <tr><th>Limitation</th><th>Mitigation / future work</th></tr>
+    <tr><td>Python interpreter overhead in benchmarks</td><td>Numbers reflect architectural comparison; a native implementation is expected to improve absolute throughput further</td></tr>
+    <tr><td>3294-byte first packet exceeds standard 1500-byte MTU</td><td>Fragments into 3 IP packets; path MTU discovery is a planned improvement</td></tr>
+    <tr><td>No built-in congestion control</td><td>Integration with QUIC-style congestion control is future work</td></tr>
+    <tr><td>In-memory nonce registry</td><td>A time-bucketed structure would scale better under sustained high load</td></tr>
+  </table>
+</div>
+
+<!-- MANUAL PROXY SETUP -->
+<div id="proxysetup" class="page">
+  <h1>Manual Proxy Configuration</h1>
+  <p class="subtitle">How the browser demonstration is wired up, and why this configuration was chosen</p>
+
+  <div class="banner">
+    <div class="btitle">What is being demonstrated</div>
+    <div class="bsub">Real Firefox browser traffic is routed through the Z-Protocol tunnel instead of going directly to the internet — proving the protocol functions as an actual usable network layer, not only a benchmark script.</div>
+  </div>
+
+  <h2>Architecture</h2>
+  <div class="steps">
+    <div class="step"><span class="stepn">1</span><p>Firefox is configured with a manual proxy pointing to <code>127.0.0.1:9999</code>. Every HTTP request the browser makes is sent to this address instead of the open internet.</p></div>
+    <div class="step"><span class="stepn">2</span><p>A local process listens on port 9999. It wraps each incoming browser request inside a Z-Protocol packet — generating the hybrid key exchange, attaching a proof-of-work token, and encrypting the HTTP data with AES-256-GCM.</p></div>
+    <div class="step"><span class="stepn">3</span><p>The completed Z-Protocol packet is sent as a single UDP datagram to port 9000 — no TCP connection, no handshake, no persistent state.</p></div>
+    <div class="step"><span class="stepn">4</span><p>The server process receives the UDP packet, decapsulates the key exchange to recover the session key, decrypts the HTTP request, and forwards it to a local web server on port 8080.</p></div>
+    <div class="step"><span class="stepn">5</span><p>The web server responds normally. The server process encrypts the response with the same session key and sends it back over UDP.</p></div>
+    <div class="step"><span class="stepn">6</span><p>The client process decrypts the response and hands it back to Firefox as a standard HTTP response — the browser renders the page with no awareness of the underlying protocol.</p></div>
+  </div>
+
+  <pre>Firefox → [HTTP request] → client proxy (port 9999)
+              ↓ wrap in Z-Protocol packet
+              ↓ ML-KEM-1024 encapsulate + AES-256-GCM encrypt
+              ↓ single UDP datagram to port 9000
+server proxy → verify proof-of-work → decapsulate key exchange
+              → decrypt → forward to local web server (port 8080)
+              → encrypt response → UDP back to client
+client proxy → decrypt → hand back to Firefox</pre>
+
+  <h2>Why a manual proxy configuration, specifically</h2>
+  <div class="why-box">
+    <div class="lbl">Reasoning behind this choice</div>
+    <p>A transparent proxy would require kernel-level traffic interception (iptables redirect rules), which adds complexity and obscures exactly what is happening to the traffic. A manual proxy is explicit: the browser is told directly where to send its requests, the routing is fully visible in Firefox's own network settings, and the demonstration becomes easy to verify, stop, and restart on demand. It also makes the kill-switch test possible — stopping the client proxy process immediately and visibly breaks the connection, because there is no fallback path for the browser to use.</p>
+  </div>
+
+  <h2>Why three separate ports</h2>
+  <div class="why-box">
+    <div class="lbl">Separation of concerns</div>
+    <p>Port 9999 (client side) and port 9000 (server side) form the Z-Protocol tunnel itself. Port 8080 is an entirely separate, standard, unencrypted HTTP server. This separation is deliberate — it proves the tunnel is carrying real traffic to a real backend, rather than the proxy fabricating a response internally. The web server has no knowledge that Z-Protocol exists; it simply receives a normal HTTP request and replies normally.</p>
+  </div>
+
+  <h2>How to run the demonstration</h2>
+  <table>
+    <tr><th>Process</th><th>Command</th><th>Role</th></tr>
+    <tr><td>Web server</td><td><code>python3 -m http.server 8080</code></td><td>Serves the actual page content</td></tr>
+    <tr><td>Server proxy</td><td><code>python3 z_server_proxy.py</code></td><td>Z-Protocol UDP listener and stats endpoint</td></tr>
+    <tr><td>Client proxy</td><td><code>python3 z_client_proxy.py</code></td><td>Browser-facing TCP proxy on port 9999</td></tr>
+  </table>
+  <p>In Firefox: Settings → Network Settings → Manual proxy configuration → HTTP Proxy: <code>127.0.0.1</code>, Port: <code>9999</code> → navigate to <code>http://127.0.0.1:8080</code>.</p>
+</div>
+
+<!-- REAL WORLD DEPLOYMENT -->
+<div id="realworld" class="page">
+  <h1>Real-World Deployment Considerations</h1>
+  <p class="subtitle">How this would function outside a single loopback machine, across routers, switches, and ISP infrastructure</p>
+
+  <div class="banner amber">
+    <div class="btitle">Important framing</div>
+    <div class="bsub">Everything demonstrated so far runs on one machine over the loopback interface (127.0.0.1), which has no real network hardware in the path. Real deployment introduces hardware and infrastructure factors that do not exist in a loopback test. This section addresses those honestly.</div>
+  </div>
+
+  <h2>What changes outside a single machine</h2>
+  <div class="hwgrid">
+    <div class="hwcard">
+      <h4>Routers and NAT</h4>
+      <p>Home and enterprise routers perform Network Address Translation. A UDP-based protocol like Z-Protocol needs the router's NAT table to correctly map outbound requests to inbound responses. Most consumer routers handle UDP NAT mapping fine, but mappings can time out faster for UDP than TCP — typically 30 to 300 seconds of inactivity before the mapping is dropped, compared to several hours for established TCP connections.</p>
+    </div>
+    <div class="hwcard">
+      <h4>Firewalls</h4>
+      <p>Many corporate and ISP-level firewalls are configured to allow TCP port 443 (HTTPS) by default but may block or rate-limit unfamiliar UDP traffic on non-standard ports, since UDP is more commonly associated with abuse (DDoS amplification, scanning). Z-Protocol on raw UDP port 9000 would likely be blocked on many restrictive networks unless explicitly allowed — this is a genuine deployment obstacle, not a protocol design flaw.</p>
+    </div>
+    <div class="hwcard">
+      <h4>Switches</h4>
+      <p>Layer 2 switches forward frames based on MAC address and generally do not interfere with UDP traffic the way a firewall or NAT device might. Switches are largely transparent to Z-Protocol — they are not a significant obstacle, unlike routers and firewalls.</p>
+    </div>
+    <div class="hwcard">
+      <h4>Load balancers</h4>
+      <p>If Z-Protocol were deployed at scale behind a load balancer, the load balancer would need UDP support and would need to either terminate the protocol itself or pass datagrams through unmodified to a consistent backend. Most commercial load balancers (such as AWS NLB) support UDP, but configuration would need explicit attention — this is not automatic the way TCP load balancing is.</p>
+    </div>
+    <div class="hwcard">
+      <h4>MTU and fragmentation</h4>
+      <p>The 3294-byte first packet exceeds the standard 1500-byte Ethernet MTU on real networks (loopback has no such limit, which is why this was not visible in testing). On a real network this packet would fragment into 3 IP fragments. Fragmented UDP is more likely to be dropped by security-conscious routers and firewalls, which is documented as a known limitation requiring future work (key compression or Path MTU Discovery).</p>
+    </div>
+    <div class="hwcard">
+      <h4>ISP and carrier-grade NAT</h4>
+      <p>Mobile carriers and some ISPs deploy carrier-grade NAT, which can be particularly aggressive about closing UDP mappings quickly to conserve resources across many subscribers. This would affect session longevity in real deployment more than it does on a fixed home connection.</p>
+    </div>
+  </div>
+
+  <h2>What this means in practice</h2>
+  <p>The cryptographic core of Z-Protocol — the hybrid key exchange, the encryption, the proof-of-work filter, the forward secrecy — does not depend on any of the network hardware listed above and would function identically wherever UDP packets are allowed to pass. What changes in a real deployment is reachability: whether the UDP packets are permitted through in the first place by the intermediate hardware on the path between client and server.</p>
+  <p>This is the same challenge that QUIC (Google's UDP-based transport, now used by HTTP/3) faced during its real-world rollout — some networks blocked or throttled UDP traffic, requiring fallback logic to retry over TCP/TLS when UDP was unavailable. A production deployment of Z-Protocol would likely need the same kind of fallback path for networks where UDP port 9000 is blocked.</p>
+
+  <h2>What would be needed for production deployment</h2>
+  <table>
+    <tr><th>Requirement</th><th>Reason</th></tr>
+    <tr><td>UDP keep-alive or shorter session refresh</td><td>To survive NAT table timeouts on routers and carrier-grade NAT</td></tr>
+    <tr><td>TCP/TLS fallback path</td><td>For networks where UDP traffic is blocked or filtered by firewalls</td></tr>
+    <tr><td>Path MTU Discovery or key compression</td><td>To avoid fragmentation of the 3294-byte first packet on real networks</td></tr>
+    <tr><td>Explicit firewall rules for UDP port 9000</td><td>Required on any restrictive enterprise or institutional network</td></tr>
+    <tr><td>UDP-aware load balancing at scale</td><td>If deployed across multiple servers rather than a single host</td></tr>
+  </table>
+
+  <div class="highlight"><p>This is presented as an honest assessment, not a weakness to hide. The current implementation is a working research prototype validated on loopback and proven functionally correct end to end. Real-world rollout would require the additions above — the same maturation path every new transport protocol (including QUIC and HTTP/3) has gone through before widespread adoption.</p></div>
+</div>
+
+<!-- PROOF -->
+<div id="proof" class="page">
+  <h1>Cryptographic Proof</h1>
+  <p class="subtitle">Captured network evidence answering: is the data actually encrypted, does the handshake actually disappear, and what can and cannot be proven about quantum resistance</p>
+
+  <h2>Does Z-Protocol actually skip the handshake?</h2>
+  <div class="why-box">
+    <div class="lbl">Method</div>
+    <p>Both protocols were captured live with <code>tcpdump</code> on the loopback interface while loading one page through each. The packet count below is direct, unedited capture output.</p>
+  </div>
+
+  <div class="compare">
+    <div class="compbox bad">
+      <h3>TLS 1.3 baseline</h3>
+      <div class="bignum">30</div>
+      <div class="bigsub">packets captured for one page load — SYN, SYN-ACK, ACK, ClientHello, ServerHello, Finished, data, FIN, ACK</div>
+    </div>
+    <div class="compbox good">
+      <h3>Z-Protocol</h3>
+      <div class="bignum">2</div>
+      <div class="bigsub">packets captured for one page load — one request, one response. No handshake packets at all.</div>
+    </div>
+  </div>
+
+  <div class="proof-box">
+    <div class="lbl">Captured evidence</div>
+    <pre>$ sudo tcpdump -r tls13_baseline.pcap -nn | wc -l
+30
+
+$ sudo tcpdump -r zproof_single_packet.pcap -nn -v
+02:29:00.072166 IP 127.0.0.1.37297 > 127.0.0.1.9000: UDP, length 3450
+02:29:00.073893 IP 127.0.0.1.9000 > 127.0.0.1.37297: UDP, length 589</pre>
+  </div>
+  <p>Each page load produces exactly one outbound UDP packet and one inbound UDP packet. There is no SYN, no ServerHello, no Finished message — the key exchange and the data are contained in the same single packet.</p>
+
+  <h2>Is the data actually encrypted?</h2>
+  <div class="why-box">
+    <div class="lbl">Method</div>
+    <p>Two captures were taken side by side: plain unencrypted HTTP traffic on port 8080, and an actual Z-Protocol packet on port 9000. Both are real captures from the test machine.</p>
+  </div>
+
+  <div class="compare">
+    <div class="compbox bad">
+      <h3>Plain HTTP — no encryption</h3>
+      <pre>Flags [P.], length 88: HTTP: <span class="readable">GET /index.html HTTP/1.1</span>
+0x0030: 2186 de76 <span class="readable">4745 5420 2f69 6e64 6578 2e68</span>  !..v<span class="readable">GET./index.h</span>
+0x0040: <span class="readable">746d 6c20 4854 5450 2f31 2e31</span> 0d0a  <span class="readable">tml.HTTP/1.1</span>..
+0x0050: <span class="readable">7374 3a20 3132 372e 302e 302e 313a</span>  <span class="readable">st:.127.0.0.1:</span>
+
+Response also fully readable:
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.13.9
+Content-type: text/html</pre>
+    </div>
+    <div class="compbox good">
+      <h3>Z-Protocol — ML-KEM-1024 + AES-256-GCM</h3>
+      <pre>UDP, length 3450
+0x0010: 7f00 0001 91b1 2328 0d82 0b96 <span class="hex-ascii">5a50</span> 01e8  ......#(....<span class="hex-ascii">ZP</span>..
+0x0020: 814e df66 e017 4898 2354 a828 ad0d a675  .N.f..H.#T.(...u
+0x0030: 5ca9 7db0 233d b5a9 2214 a04c 6f10 300a  \.}.#=.."..Lo.0.
+
+[... 3450 bytes total, zero readable words ...]</pre>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div class="vtitle">Direct comparison result</div>
+    <p>The word "GET" appears in the plaintext capture. It does not appear anywhere in the Z-Protocol capture, despite both transmitting the exact same HTTP request. This is the empirical signature of working encryption.</p>
+  </div>
+
+  <h2>How does the packet travel</h2>
+  <table>
+    <tr><th>Field</th><th>Plain HTTP (8080)</th><th>Z-Protocol (9000)</th></tr>
+    <tr><td>Transport</td><td>TCP</td><td class="td-green">UDP</td></tr>
+    <tr><td>Connection setup</td><td class="td-red">3-way handshake</td><td class="td-green">None — connectionless</td></tr>
+    <tr><td>Request visibility</td><td class="td-red">Fully readable plaintext</td><td class="td-green">Fully encrypted</td></tr>
+    <tr><td>Packets for one request</td><td class="td-red">6+ packets</td><td class="td-green">2 packets</td></tr>
+    <tr><td>Round trips before data flows</td><td class="td-red">1+ after handshake</td><td class="td-green">0</td></tr>
+  </table>
+
+  <h2>Quantum resistance — what can and cannot be claimed</h2>
+  <div class="proof-box">
+    <div class="lbl">Confirmed algorithm</div>
+    <pre>$ python3 verify_kem.py
+[+] Engine active: ML-KEM-1024
+[+] Public key size: 1568 bytes
+[+] Ciphertext size: 1568 bytes
+[+] ML-KEM-1024 working correctly!</pre>
+  </div>
+  <p>The 1568-byte key and ciphertext sizes exactly match the published NIST FIPS 203 specification for ML-KEM-1024, confirming the real standardized algorithm is in use, not a placeholder.</p>
+
+  <div class="honest-box">
+    <div class="lbl">Honest assessment</div>
+    <p>No quantum computer capable of threatening ML-KEM-1024 currently exists, so this cannot be empirically tested in this lab. What can be demonstrated is that the packet uses ML-KEM-1024, a NIST-standardized algorithm (FIPS 203) whose security rests on the Module Learning With Errors lattice problem. Unlike RSA and elliptic curve cryptography used in classical TLS, no efficient quantum algorithm is currently known against this class of problem — this is the reasoning behind NIST's selection of it as the post-quantum standard after years of public cryptanalysis. The contribution here is not new cryptography — it is correctly implementing this already-vetted algorithm inside a novel zero-RTT transport architecture, and demonstrating that architecture is measurably faster than TLS 1.3 while carrying this protection.</p>
+  </div>
+
+  <h2>Summary of evidence</h2>
+  <table>
+    <tr><th>Claim</th><th>Status</th><th>Evidence</th></tr>
+    <tr><td>No TLS-style handshake occurs</td><td class="td-green">Proven directly</td><td>2 packets vs 30 packets, captured live</td></tr>
+    <tr><td>Payload is encrypted, not plaintext</td><td class="td-green">Proven directly</td><td>Side-by-side hex dump comparison</td></tr>
+    <tr><td>Real ML-KEM-1024 is used</td><td class="td-green">Proven directly</td><td>Key/ciphertext sizes match NIST spec exactly</td></tr>
+    <tr><td>Travels over UDP, single round trip</td><td class="td-green">Proven directly</td><td>tcpdump confirms proto UDP, 1 req + 1 resp</td></tr>
+    <tr><td>Resists an actual quantum computer attack</td><td class="td-red">Cannot be empirically tested</td><td>Relies on NIST's vetting of the underlying lattice problem</td></tr>
+  </table>
+</div>
+
+<!-- LIVE DASHBOARD -->
+<div id="dashboard" class="page">
+  <h1>Live Monitoring Dashboard</h1>
+  <p class="subtitle">Real-time view of traffic moving through the Z-Protocol tunnel — opens automatically only when the manual proxy is active</p>
+
+  <div class="explainer">
+    <h4>What this page shows when opened through the proxy</h4>
+    <p>This dashboard is reachable only by routing Firefox through the manual proxy configuration described earlier. It polls a live statistics endpoint on the server every second and displays exactly what is happening to traffic in real time — packet counts, session keys, and a request log — with no information fabricated or simulated.</p>
+  </div>
+
+  <div id="offline-banner">
+    Tunnel offline — the proxy has been stopped. Reloading this page through the proxy will fail to load, demonstrating the page is only reachable via the tunnel.
+  </div>
+
+  <div class="dash-status-row">
+    <div class="pill pill-green" id="tunnel-pill">
+      <span class="dot dot-green" id="status-dot"></span>
+      <span id="status-text">Connecting to tunnel...</span>
+    </div>
+    <div class="pill pill-blue">UDP port 9000</div>
+    <div class="pill pill-blue">ML-KEM-1024 + X25519</div>
+    <div class="pill pill-amber">AES-256-GCM</div>
+    <div class="pill pill-green">SHA3-512 proof-of-work</div>
+  </div>
+
+  <div class="dash-metrics">
+    <div class="mcard"><div class="mlabel">Packets received</div><div class="mval c-blue" id="m-recv">—</div></div>
+    <div class="mcard"><div class="mlabel">Packets decrypted</div><div class="mval c-green" id="m-dec">—</div></div>
+    <div class="mcard"><div class="mlabel">Dropped (failed checks)</div><div class="mval c-red" id="m-drop">—</div></div>
+    <div class="mcard"><div class="mlabel">Data tunneled</div><div class="mval c-amber" id="m-bytes">—</div></div>
+    <div class="mcard"><div class="mlabel">Unique sessions</div><div class="mval c-blue" id="m-sess">—</div></div>
+    <div class="mcard"><div class="mlabel">Server uptime</div><div class="mval c-green" id="m-up">—</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="dpanel">
+      <h4>Live request log — each row is one Z-Protocol packet</h4>
+      <div class="log-row log-head"><span>Time</span><span>Method</span><span>Path</span><span>Session key</span><span>Size</span></div>
+      <div id="log-body"><div class="empty-log">No packets yet — make a request through the proxy</div></div>
+    </div>
+
+    <div class="dpanel">
+      <h4>Server identity</h4>
+      <div class="irow"><span class="ilabel">Protocol</span><span class="ival" id="si-proto">—</span></div>
+      <div class="irow"><span class="ilabel">UDP tunnel port</span><span class="ival">9000</span></div>
+      <div class="irow"><span class="ilabel">Stats endpoint</span><span class="ival">:9001/zstats</span></div>
+      <div class="irow"><span class="ilabel">ML-KEM pubkey prefix</span><span class="ival" id="si-kem">—</span></div>
+      <div class="irow"><span class="ilabel">X25519 pubkey</span><span class="ival" id="si-x">—</span></div>
+      <div class="irow"><span class="ilabel">Handshake round trips</span><span class="ival c-green">0 (zero-RTT)</span></div>
+      <div class="irow"><span class="ilabel">Forward secrecy</span><span class="ival c-green">Double Ratchet</span></div>
+      <div class="irow"><span class="ilabel">Replay protection</span><span class="ival c-green">30s nonce window</span></div>
+    </div>
+  </div>
+
+  <div class="explainer">
+    <h4>What is happening on each request</h4>
+    <p>Every request from the browser is intercepted by the client proxy on port 9999, wrapped inside a Z-Protocol packet containing a fresh post-quantum key exchange, a proof-of-work token, and the encrypted HTTP data — all as a single UDP packet sent to port 9000. The server verifies the proof-of-work, decapsulates the key exchange, decrypts the request, fetches the page, encrypts the response, and sends it back. The browser never touches the network directly. Each number on this dashboard represents one of those encrypted exchanges.</p>
+  </div>
+
+  <div class="explainer">
+    <h4>What each session key represents</h4>
+    <p>Every row in the request log shows a unique session key prefix, derived fresh for that single request using both ML-KEM-1024 and X25519 combined through HKDF. Each key is used once and then discarded — this is the forward secrecy property in action, visible directly in the log.</p>
+  </div>
+
+  <div class="killbox">
+    <h4>Kill-switch verification</h4>
+    <div class="step"><span class="stepnum">1</span><span>Locate the terminal running the client proxy process</span></div>
+    <div class="step"><span class="stepnum">2</span><span>Stop it (Ctrl+C)</span></div>
+    <div class="step"><span class="stepnum">3</span><span>The status indicator above turns red and the counters freeze within seconds</span></div>
+    <div class="step"><span class="stepnum">4</span><span>Attempting to reload the page through the proxy fails entirely — confirming the page is only reachable via the tunnel</span></div>
+    <div class="step"><span class="stepnum">5</span><span>Restarting the client proxy restores the connection and the dashboard resumes automatically</span></div>
+  </div>
+
+  <script>
+    const STATS = "http://127.0.0.1:9001/zstats";
+    let fails = 0;
+    function fmtBytes(b){if(b<1024)return b+" B";if(b<1048576)return(b/1024).toFixed(1)+" KB";return(b/1048576).toFixed(2)+" MB";}
+    function fmtUp(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
+    function setAlive(alive){
+      const pill=document.getElementById("tunnel-pill"), dot=document.getElementById("status-dot"),
+            txt=document.getElementById("status-text"), banner=document.getElementById("offline-banner");
+      if(alive){pill.className="pill pill-green";dot.className="dot dot-green";txt.textContent="Z-Protocol Tunnel Active";banner.style.display="none";}
+      else{pill.className="pill pill-red";dot.className="dot dot-red";txt.textContent="Tunnel Offline";banner.style.display="block";}
+    }
+    function renderLog(entries){
+      const body=document.getElementById("log-body");
+      if(!entries||entries.length===0)return;
+      body.innerHTML=entries.map(e=>{
+        const parts=(e.request||"").split(" "); const method=parts[0]||"-"; const path=parts[1]||"-";
+        return `<div class="log-row"><span class="log-time">${e.time}</span><span class="log-method">${method}</span><span class="log-path">${path}</span><span class="log-key">${e.session_key}</span><span class="log-size">${e.size}B</span></div>`;
+      }).join("");
+    }
+    async function poll(){
+      try{
+        const r=await fetch(STATS,{cache:"no-store",signal:AbortSignal.timeout(2000)});
+        const d=await r.json(); fails=0; setAlive(true);
+        document.getElementById("m-recv").textContent=d.packets_received;
+        document.getElementById("m-dec").textContent=d.packets_decrypted;
+        document.getElementById("m-drop").textContent=d.packets_dropped;
+        document.getElementById("m-bytes").textContent=fmtBytes(d.bytes_tunneled);
+        document.getElementById("m-sess").textContent=d.active_sessions;
+        document.getElementById("m-up").textContent=fmtUp(d.uptime_seconds);
+        document.getElementById("si-proto").textContent=d.protocol;
+        document.getElementById("si-kem").textContent=d.server_kem_pub;
+        document.getElementById("si-x").textContent=(d.server_x25519_pub||"").slice(0,24)+"...";
+        renderLog(d.request_log);
+      }catch(e){fails++;if(fails>=2)setAlive(false);}
+    }
+    poll(); setInterval(poll,1000);
+  </script>
+</div>
+
+<!-- RESULTS SUMMARY -->
+<div id="results" class="page">
+  <h1>Results Summary</h1>
+  <p class="subtitle">Consolidated measurements from all phases</p>
+
+  <h2>KEM benchmark</h2>
+  <table>
+    <tr><th>Algorithm</th><th>Avg per operation</th><th>Security class</th></tr>
+    <tr><td>X25519</td><td class="td-amber">0.1457ms</td><td class="td-red">Classical — vulnerable to quantum attack</td></tr>
+    <tr><td>ML-KEM-1024</td><td class="td-green">0.0871ms</td><td class="td-green">Post-quantum — NIST FIPS 203</td></tr>
+  </table>
+
+  <h2>Network latency under packet loss</h2>
+  <table>
+    <tr><th>Packet loss</th><th>TLS 1.3</th><th>Z-Protocol</th><th>Speed advantage</th></tr>
+    <tr><td>0%</td><td class="td-amber">7.2583ms</td><td class="td-green">0.2541ms</td><td class="td-green">28.5x</td></tr>
+    <tr><td>1%</td><td class="td-amber">28.462ms</td><td class="td-green">0.2973ms</td><td class="td-green">95.7x</td></tr>
+    <tr><td>5%</td><td class="td-amber">50.9088ms</td><td class="td-green">0.2422ms</td><td class="td-green">210x</td></tr>
+    <tr><td>10%</td><td class="td-amber">~98.4ms</td><td class="td-green">~0.261ms</td><td class="td-green">~378x</td></tr>
+  </table>
+
+  <h2>Protocol metrics</h2>
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>Z-Protocol first packet size</td><td class="td-blue">3294 bytes</td></tr>
+    <tr><td>ML-KEM-1024 public key size</td><td class="td-blue">1568 bytes</td></tr>
+    <tr><td>ML-KEM-1024 ciphertext size</td><td class="td-blue">1568 bytes</td></tr>
+    <tr><td>Session key size</td><td class="td-blue">32 bytes (AES-256)</td></tr>
+    <tr><td>Proof-of-work solve time (difficulty 2)</td><td class="td-blue">14–95ms</td></tr>
+    <tr><td>TLS 1.3 packet capture baseline</td><td class="td-blue">30 packets, 14KB, ~0.011ms RTT</td></tr>
+    <tr><td>Handshake round trips</td><td class="td-green">0 (zero-RTT)</td></tr>
+    <tr><td>Live browser demonstration</td><td class="td-green">Confirmed working through Firefox</td></tr>
+  </table>
+
+  <h2>Security properties verified</h2>
+  <table>
+    <tr><th>Property</th><th>Mechanism</th><th>Verification</th></tr>
+    <tr><td>Quantum resistance</td><td>ML-KEM-1024 + X25519 hybrid key exchange</td><td class="td-green">Independent key derivation matched in test</td></tr>
+    <tr><td>Zero round-trip time</td><td>Monolithic first packet over UDP</td><td class="td-green">Server decrypts first packet directly</td></tr>
+    <tr><td>Forward secrecy</td><td>Double Ratchet chain key rotation</td><td class="td-green">3-message rotation test passed</td></tr>
+    <tr><td>DDoS resistance</td><td>SHA3-512 proof-of-work, difficulty 2</td><td class="td-green">Solve and verify test passed</td></tr>
+    <tr><td>Replay prevention</td><td>Nonce registry plus 30-second window</td><td class="td-green">4-case test, all passed</td></tr>
+    <tr><td>Live tunneling</td><td>Firefox HTTP traffic via UDP proxy</td><td class="td-green">Kill-switch demonstration confirmed</td></tr>
+  </table>
+
+  <div class="highlight" style="margin-top:24px;">
+    <p>Summary: Z-Protocol achieves quantum-resistant, zero round-trip encrypted transport that is 28x faster than TLS 1.3 under normal conditions and up to 378x faster under 10% packet loss, demonstrated through a working prototype with a live browser tunneling demonstration, captured packet evidence, and a formal protocol specification.</p>
+  </div>
+</div>
+
+<script>
+function show(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+  return false;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+liboqs-python faulthandler is disabled
+[+] Engine active: ML-KEM-1024
+[+] Public key size: 1568 bytes
+[+] Ciphertext size: 1568 bytes
+[+] ML-KEM-1024 working correctly!
