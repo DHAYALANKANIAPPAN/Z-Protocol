@@ -1,0 +1,10 @@
+--2026-08-08 15:50:43--  http://172.20.111.248:8888/srv_kem.pub
+Connecting to 172.20.111.248:8888... failed: Connection timed out.
+Retrying.
+
+--2026-08-08 15:53:00--  (try: 2)  http://172.20.111.248:8888/srv_kem.pub
+Connecting to 172.20.111.248:8888... failed: Connection timed out.
+Retrying.
+
+--2026-08-08 15:55:16--  (try: 3)  http://172.20.111.248:8888/srv_kem.pub
+Connecting to 172.20.111.248:8888... failed: Network is unreachable.
