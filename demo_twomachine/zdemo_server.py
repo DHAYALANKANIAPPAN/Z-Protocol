@@ -1,18 +1,3 @@
-# zdemo_server.py
-# Z-Protocol Demo Server
-#
-# Usage:
-#   python3 zdemo_server.py
-#
-# This machine becomes the SERVER.
-# It generates keypairs, saves public keys, and listens for Z-Protocol packets.
-# Every cryptographic step is printed in detail so both sides are fully visible.
-#
-# The other machine (client) needs:
-#   - srv_kem.pub     (copy with scp or USB)
-#   - srv_x25519.pub  (copy with scp or USB)
-# Then runs: python3 zdemo_client.py <this_machine_ip>
-
 import asyncio
 import os
 import time
