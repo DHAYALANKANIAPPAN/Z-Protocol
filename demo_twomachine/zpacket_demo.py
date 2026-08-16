@@ -1,10 +1,3 @@
-# zpacket_demo.py
-# Binary packet builder and parser for Z-Protocol demo
-#
-# Header layout (1654 bytes fixed):
-# VERSION(1) | TYPE(1) | SESSION_ID(8) | TIMESTAMP(8) |
-# POW_TOKEN(32) | KEM_PUBKEY(1568) | X25519_PUBKEY(32) | PAYLOAD_LEN(4)
-
 import struct
 import time
 
