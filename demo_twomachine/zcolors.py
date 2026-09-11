@@ -1,3 +1,6 @@
+# zcolors.py
+# Shared terminal color helper used by all demo scripts
+
 import time
 
 RESET  = "\033[0m"

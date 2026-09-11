@@ -1,3 +1,8 @@
+# zkem_demo.py
+# Hybrid KEM: X25519 + ML-KEM-1024 combined via HKDF
+# Both sides independently derive the same 32-byte session key.
+# The session key itself is NEVER transmitted.
+
 import oqs
 from cryptography.hazmat.primitives.asymmetric.x25519 import (
     X25519PrivateKey, X25519PublicKey
