@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Z-Protocol Project Report</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Times, serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+        }
+        .page {
+            page-break-after: always;
+            padding: 2cm;
+            position: relative;
+        }
+        .center {
+            text-align: center;
+        }
+        .bold {
+            font-weight: bold;
+        }
+        h1, h2, h3 {
+            font-family: "Times New Roman", Times, serif;
+            color: #000;
+        }
+        .title-page-content {
+            margin-top: 50px;
+        }
+        .title-page-content h2 {
+            font-size: 20px;
+            margin-bottom: 40px;
+        }
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            border: 1px dashed #999;
+            display: inline-block;
+            margin: 20px;
+            line-height: 120px;
+            color: #999;
+            font-style: italic;
+        }
+        .submitted-by {
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .toc-table td {
+            padding: 10px 0;
+        }
+        .text-justify {
+            text-align: justify;
+        }
+        img.architecture {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+        .chapter-heading {
+            text-align: center;
+            font-weight: bold;
+            font-size: 24px;
+            margin-top: 100px;
+            margin-bottom: 40px;
+        }
+        .sub-heading {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cover Page -->
+    <div class="page center">
+        <br>
+        <div class="logo-placeholder" style="float: left;">[College Logo Here]</div>
+        <div class="logo-placeholder" style="float: right;">[NAAC Logo Here]</div>
+        <div style="clear: both;"></div>
+
+        <div class="title-page-content">
+            <h1 class="bold">Z-PROTOCOL: ZERO-RTT POST-QUANTUM SECURE COMMUNICATION</h1>
+            <br>
+            <h3 class="bold">Engineering Exploration - IV</h3>
+            <br>
+            <h3 class="bold">Submitted by</h3>
+            
+            <table style="width: 60%; margin: 0 auto; font-size: 16px;" class="bold">
+                <tr>
+                    <td style="text-align: left;">STUDENT 1</td>
+                    <td style="text-align: right;">(REGISTER NO 1)</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">STUDENT 2</td>
+                    <td style="text-align: right;">(REGISTER NO 2)</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">STUDENT 3</td>
+                    <td style="text-align: right;">(REGISTER NO 3)</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">STUDENT 4</td>
+                    <td style="text-align: right;">(REGISTER NO 4)</td>
+                </tr>
+            </table>
+
+            <div class="submitted-by">
+                <p class="bold" style="font-size: 16px;">In partial fulfillment for the award of the degree of</p>
+                <h2 class="bold">BACHELOR OF ENGINEERING</h2>
+                <p class="bold" style="font-size: 16px;">in</p>
+                <h3 class="bold">COMPUTER SCIENCE AND ENGINEERING<br>(CYBER SECURITY)</h3>
+            </div>
+
+            <h2 class="bold">[YOUR COLLEGE NAME HERE]</h2>
+            <p style="font-size: 16px;">An Autonomous Institute, Accredited by NAAC with "A" Grade</p>
+            <br>
+            <p class="bold" style="font-size: 16px;">ANNA UNIVERSITY: CHENNAI 600025</p>
+            <p class="bold" style="font-size: 16px;">APRIL–2026</p>
+        </div>
+    </div>
+
+    <!-- Bonafide Certificate -->
+    <div class="page">
+        <h2 class="center bold">ANNA UNIVERSITY: CHENNAI 600025</h2>
+        <h2 class="center bold">BONAFIDE CERTIFICATE</h2>
+        <br><br>
+        <p class="text-justify" style="font-size: 18px; line-height: 2;">
+            Certified that this project report <b>"Z-PROTOCOL: ZERO-RTT POST-QUANTUM SECURE COMMUNICATION"</b> is the bonafide work of <b>"STUDENT 1 (REG NO), STUDENT 2 (REG NO)"</b> who carried out the work in <b>Engineering Exploration – IV</b> under my supervision.
+        </p>
+        <br><br><br><br>
+        <table style="width: 100%;">
+            <tr>
+                <td style="text-align: left;"><b>SIGNATURE</b><br><br><br>[Guide Name]<br><b>ASSISTANT PROFESSOR</b><br>Department of Computer Science<br>and Engineering (Cyber Security)<br>[College Name]</td>
+                <td style="text-align: right;"><b>SIGNATURE</b><br><br><br>[HOD Name]<br><b>HEAD OF THE DEPARTMENT</b><br>Department of Computer Science<br>and Engineering (Cyber Security)<br>[College Name]</td>
+            </tr>
+        </table>
+        <br><br><br><br>
+        <p style="font-size: 18px;"><b>Submitted for the University Engineering Exploration - IV viva-voce conducted on.....................</b></p>
+        <br><br><br>
+        <p style="text-align: right;"><b>INTERNAL EXAMINER</b></p>
+    </div>
+
+    <!-- Acknowledgement -->
+    <div class="page">
+        <h2 class="center bold">ACKNOWLEDGEMENT</h2>
+        <br><br>
+        <p class="text-justify" style="text-indent: 50px;">
+            We express our deepest gratitude to our Chairman and Management for their continuous encouragement and support throughout the course of study. We are thankful to our Secretary for their encouragement.
+        </p>
+        <p class="text-justify" style="text-indent: 50px;">
+            We would like to express our gratefulness to our Principal for his academic interest shown towards the students. We are very grateful to our Dean of Academics and Head of the Department of Computer Science and Engineering for providing us with the necessary facilities.
+        </p>
+        <p class="text-justify" style="text-indent: 50px;">
+            It’s a great pleasure to thank our Project Guide for their valuable technical suggestion and guidance throughout this project work. We solemnly extend our thanks to all the teaching and non-teaching staff of our Department, family, and friends for their valuable support.
+        </p>
+    </div>
+
+    <!-- Abstract -->
+    <div class="page">
+        <h2 class="center bold">ABSTRACT</h2>
+        <br>
+        <p class="text-justify">
+            As global network communications increasingly demand ultra-low latency, traditional security protocols such as TCP/TLS struggle to meet these requirements due to the overhead of multi-step cryptographic handshakes. Furthermore, the foundational security of these protocols relies on classical asymmetric algorithms (e.g., RSA and Elliptic Curve Cryptography), which are acutely vulnerable to the rapidly advancing threat of Cryptographically Relevant Quantum Computers (CRQCs). This project introduces Z-Protocol: a custom, zero-round-trip-time (0-RTT), quantum-resistant secure communication protocol built over UDP. 
+        </p>
+        <p class="text-justify">
+            Z-Protocol eliminates connection setup delays by encapsulating both the cryptographic key exchange and the encrypted payload within the initial transmission packet. The protocol implements a hybrid cryptographic architecture, combining ML-KEM-1024 (NIST Post-Quantum Cryptography standard) with the battle-tested X25519 elliptic curve. Additionally, Z-Protocol features a custom fragmentation engine for large payloads and a SHA3-512 Proof-of-Work (PoW) mechanism to defend against DDoS attacks.
+        </p>
+        <p class="text-justify">
+            Experimental deployment and testing demonstrate that Z-Protocol successfully achieves instantaneous secure data transmission without compromising reliability or security. By stripping away multi-round-trip overhead while integrating state-of-the-art post-quantum defenses, Z-Protocol serves as a highly efficient blueprint for next-generation secure networking.
+        </p>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="page">
+        <h2 class="center bold">TABLE OF CONTENTS</h2>
+        <br>
+        <table class="toc-table">
+            <tr><td width="10%"><b>NO</b></td><td width="80%"><b>TITLE</b></td><td width="10%" style="text-align: right;"><b>PAGE</b></td></tr>
+            <tr><td></td><td>ABSTRACT</td><td style="text-align: right;">iv</td></tr>
+            <tr><td></td><td>LIST OF ABBREVIATIONS</td><td style="text-align: right;">v</td></tr>
+            <tr><td></td><td>LIST OF FIGURES</td><td style="text-align: right;">vi</td></tr>
+            <tr><td><b>1</b></td><td><b>INTRODUCTION</b></td><td style="text-align: right;"><b>1</b></td></tr>
+            <tr><td>1.1</td><td>Introduction to Network Security</td><td style="text-align: right;">1</td></tr>
+            <tr><td>1.2</td><td>Need for Post-Quantum Protocols</td><td style="text-align: right;">2</td></tr>
+            <tr><td>1.3</td><td>Introduction to Z-Protocol</td><td style="text-align: right;">3</td></tr>
+            <tr><td><b>2</b></td><td><b>LITERATURE SURVEY</b></td><td style="text-align: right;"><b>4</b></td></tr>
+            <tr><td>2.1</td><td>Evolution of Secure Communication</td><td style="text-align: right;">4</td></tr>
+            <tr><td>2.2</td><td>The Quantum Threat</td><td style="text-align: right;">5</td></tr>
+            <tr><td><b>3</b></td><td><b>SYSTEM REQUIREMENTS</b></td><td style="text-align: right;"><b>6</b></td></tr>
+            <tr><td>3.1</td><td>Hardware Requirements</td><td style="text-align: right;">6</td></tr>
+            <tr><td>3.2</td><td>Software Requirements</td><td style="text-align: right;">6</td></tr>
+            <tr><td><b>4</b></td><td><b>PROPOSED METHODOLOGY</b></td><td style="text-align: right;"><b>7</b></td></tr>
+            <tr><td>4.1</td><td>System Architecture</td><td style="text-align: right;">7</td></tr>
+            <tr><td>4.2</td><td>Packet Structure</td><td style="text-align: right;">8</td></tr>
+            <tr><td><b>5</b></td><td><b>IMPLEMENTATION AND RESULTS</b></td><td style="text-align: right;"><b>10</b></td></tr>
+            <tr><td><b>6</b></td><td><b>CONCLUSION</b></td><td style="text-align: right;"><b>12</b></td></tr>
+        </table>
+    </div>
+
+    <!-- Chapter 1 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 1<br>INTRODUCTION</div>
+        <div class="sub-heading">1.1 INTRODUCTION TO NETWORK SECURITY</div>
+        <p class="text-justify">
+            In modern network architecture, secure communication is primarily handled by the Transport Layer Security (TLS) protocol running over the Transmission Control Protocol (TCP). While this guarantees ordered, error-checked, and encrypted delivery of data, it requires significant back-and-forth communication (handshakes) before a single byte of application data is securely transmitted. This overhead is fundamentally incompatible with the rising demand for instantaneous data transfer in the modern world.
+        </p>
+        
+        <div class="sub-heading">1.2 NEED FOR LOW-LATENCY AND POST-QUANTUM PROTOCOLS</div>
+        <p class="text-justify">
+            In high-latency environments (such as satellite communications) or real-time systems, the delay introduced by traditional handshakes is unacceptable. Furthermore, the mathematical foundations of current public-key cryptography (RSA and Elliptic Curves) are theoretically broken by Shor's algorithm running on a sufficiently powerful quantum computer. Threat actors are currently engaging in "Store-Now-Decrypt-Later" attacks to steal and store today's encrypted data.
+        </p>
+        
+        <div class="sub-heading">1.3 INTRODUCTION TO Z-PROTOCOL</div>
+        <p class="text-justify">
+            Z-Protocol is a custom cryptographic network protocol designed to solve both the latency and quantum-threat problems. Operating over UDP, it achieves 0-RTT (Zero Round-Trip Time) communication by packing the client's public keys, the ciphertext, and a cryptographic puzzle solution into the very first packet. It utilizes a hybrid approach, securing data with both classical X25519 and post-quantum ML-KEM-1024.
+        </p>
+    </div>
+
+    <!-- Chapter 2 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 2<br>LITERATURE SURVEY</div>
+        <div class="sub-heading">2.1 EVOLUTION OF SECURE COMMUNICATION</div>
+        <p class="text-justify">
+            Historically, secure communication required pre-shared keys. The invention of public-key cryptography (Diffie-Hellman, RSA) allowed secure key exchange over public channels, forming the basis of SSL and TLS. TLS 1.3 introduced a 0-RTT mode, but it relies on a previously established session ticket, meaning the very first connection still requires a full handshake. This remains a significant bottleneck for entirely new connections in decentralized networks.
+        </p>
+        
+        <div class="sub-heading">2.2 THE QUANTUM THREAT</div>
+        <p class="text-justify">
+            Research indicates that CRQCs (Cryptographically Relevant Quantum Computers) will eventually break the discrete logarithm problem. In response, NIST initiated a multi-year competition to standardize Post-Quantum Cryptography (PQC). In 2024, ML-KEM (originally known as CRYSTALS-Kyber) was officially standardized as FIPS 203.
+        </p>
+    </div>
+
+    <!-- Chapter 3 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 3<br>SYSTEM REQUIREMENTS</div>
+        <div class="sub-heading">3.1 HARDWARE REQUIREMENTS</div>
+        <ul>
+            <li><b>Processor:</b> Dual-core CPU or higher (Intel/AMD)</li>
+            <li><b>RAM:</b> Minimum 4 GB</li>
+            <li><b>Networking:</b> Standard Wi-Fi or Ethernet adapter supporting UDP traffic</li>
+        </ul>
+        
+        <div class="sub-heading">3.2 SOFTWARE REQUIREMENTS</div>
+        <ul>
+            <li><b>Operating System:</b> Linux (Ubuntu, Kali Linux), macOS, or Windows</li>
+            <li><b>Programming Language:</b> Python 3.10+</li>
+            <li><b>Core Libraries:</b> <code>liboqs-python</code>, <code>cryptography</code>, <code>scapy</code>, <code>asyncio</code></li>
+        </ul>
+    </div>
+
+    <!-- Chapter 4 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 4<br>PROPOSED METHODOLOGY</div>
+        <div class="sub-heading">4.1 SYSTEM ARCHITECTURE</div>
+        <p class="text-justify">
+            The system operates in a Client-Server topology during the initial connection, evolving into full bidirectional peer-to-peer communication. The architecture utilizes a hybrid approach for Key Encapsulation, running ML-KEM alongside X25519.
+        </p>
+        <br>
+        <div style="text-align: center;">
+            <img class="architecture" src="architecture.jpg" alt="Z-Protocol Architecture" style="width: 80%;">
+            <p><b>Fig 1: System Architecture of Z-Protocol</b></p>
+        </div>
+        <br>
+        <div class="sub-heading">4.2 PACKET STRUCTURE AND FRAGMENTATION</div>
+        <p class="text-justify">
+            The protocol relies on a strict binary structure containing a 26-byte Header, a 1600-byte Key Encapsulation block (for Handshakes), and the encrypted payload. To bypass UDP MTU limitations, Z-Protocol includes a custom fragmentation engine that parses large payloads into indexed packets for reassembly.
+        </p>
+        <div class="sub-heading">4.3 PROOF-OF-WORK MECHANISM</div>
+        <p class="text-justify">
+            To defend against DDoS attacks, clients must brute-force a nonce until the SHA3-512 hash of the packet header begins with a required prefix, proving computational effort prior to server validation.
+        </p>
+    </div>
+
+    <!-- Chapter 5 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 5<br>IMPLEMENTATION AND RESULTS</div>
+        <p class="text-justify">
+            The protocol was successfully implemented in Python using the asyncio framework for non-blocking I/O. The system demonstrated true 0-RTT communication over a local wireless network, instantly establishing a secure connection and transferring data without the standard TCP/TLS handshake. The fragmentation engine successfully reassembled large files securely across the network.
+        </p>
+    </div>
+
+    <!-- Chapter 6 -->
+    <div class="page">
+        <div class="chapter-heading">CHAPTER 6<br>CONCLUSION AND FUTURE ENHANCEMENTS</div>
+        <div class="sub-heading">6.1 CONCLUSION</div>
+        <p class="text-justify">
+            The Z-Protocol project successfully proves that combining Post-Quantum Cryptography with Zero-Round-Trip-Time UDP transmission is highly effective. By eliminating the multi-step handshake, the protocol dramatically reduces latency while remaining secure against future quantum threats.
+        </p>
+        
+        <div class="sub-heading">6.2 FUTURE ENHANCEMENTS</div>
+        <p class="text-justify">
+            Future iterations of Z-Protocol will include a continuous key-ratchet mechanism (Forward Secrecy) and a custom packet-loss recovery system for highly unstable networks. Furthermore, rewriting the core engine in C or Rust will allow for kernel-level integration, drastically improving throughput.
+        </p>
+    </div>
+
+</body>
+</html>

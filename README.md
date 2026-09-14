@@ -6,7 +6,9 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 > A custom-built network security protocol that achieves quantum-resistant encryption with **zero round-trip handshake latency** from the very first packet — built on ML-KEM-1024 + X25519 hybrid key exchange over stateless UDP.
+
 ---
+
 ## What is Z-Protocol
 
 Z-Protocol replaces the TLS handshake with a single UDP packet containing everything needed to establish a quantum-safe encrypted session — key exchange, authentication, and encrypted data — all in one shot.
