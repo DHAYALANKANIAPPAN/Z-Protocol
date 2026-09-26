@@ -7,9 +7,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-PROXY_HOST = "127.0.0.1"
+import sys
+
+PROXY_HOST = "0.0.0.0"
 PROXY_PORT = 9999  
-SERVER_UDP_HOST = "127.0.0.1"
+SERVER_UDP_HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
 SERVER_UDP_PORT = 9000
 
 def client_hybrid_encap(server_kem_pub, server_x_pub):

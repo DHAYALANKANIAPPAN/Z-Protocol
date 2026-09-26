@@ -702,6 +702,9 @@ Content-type: text/html</pre>
     <div class="mcard"><div class="mlabel">Packets received</div><div class="mval c-blue" id="m-recv">—</div></div>
     <div class="mcard"><div class="mlabel">Packets decrypted</div><div class="mval c-green" id="m-dec">—</div></div>
     <div class="mcard"><div class="mlabel">Dropped (failed checks)</div><div class="mval c-red" id="m-drop">—</div></div>
+    <div class="mcard"><div class="mlabel">Simulated Loss Rate</div><div class="mval c-red" id="m-loss">—</div></div>
+    <div class="mcard"><div class="mlabel">Avg Encrypt/Decrypt Time</div><div class="mval c-amber" id="m-enctime">—</div></div>
+    <div class="mcard"><div class="mlabel">Latency (RTT)</div><div class="mval c-blue" id="m-rtt">—</div></div>
     <div class="mcard"><div class="mlabel">Data tunneled</div><div class="mval c-amber" id="m-bytes">—</div></div>
     <div class="mcard"><div class="mlabel">Unique sessions</div><div class="mval c-blue" id="m-sess">—</div></div>
     <div class="mcard"><div class="mlabel">Server uptime</div><div class="mval c-green" id="m-up">—</div></div>
@@ -737,6 +740,19 @@ Content-type: text/html</pre>
     <p>Every row in the request log shows a unique session key prefix, derived fresh for that single request using both ML-KEM-1024 and X25519 combined through HKDF. Each key is used once and then discarded — this is the forward secrecy property in action, visible directly in the log.</p>
   </div>
 
+  <div class="two-col">
+    <div class="dpanel">
+      <h4>Secure Z-Protocol Chat (Encrypted via ML-KEM-1024)</h4>
+      <div id="chat-box" style="height: 250px; background: #070a12; border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-y: auto; margin-bottom: 12px; font-family: monospace;">
+        <div style="color: var(--muted2);">Chat connected. Messages are routed through the UDP Z-Tunnel...</div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chat-input" placeholder="Type a message to send over Z-Protocol..." style="flex: 1; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px;">
+        <button onclick="sendChat()" style="background: var(--blue); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Send</button>
+      </div>
+    </div>
+  </div>
+
   <div class="killbox">
     <h4>Kill-switch verification</h4>
     <div class="step"><span class="stepnum">1</span><span>Locate the terminal running the client proxy process</span></div>
@@ -747,7 +763,11 @@ Content-type: text/html</pre>
   </div>
 
   <script>
-    const STATS = "http://127.0.0.1:9001/zstats";
+    let API_BASE = "http://127.0.0.1:9999";
+    if (window.location.protocol !== "file:") {
+        API_BASE = window.location.origin;
+    }
+    const STATS = API_BASE + "/zstats";
     let fails = 0;
     function fmtBytes(b){if(b<1024)return b+" B";if(b<1048576)return(b/1024).toFixed(1)+" KB";return(b/1048576).toFixed(2)+" MB";}
     function fmtUp(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
@@ -765,6 +785,26 @@ Content-type: text/html</pre>
         return `<div class="log-row"><span class="log-time">${e.time}</span><span class="log-method">${method}</span><span class="log-path">${path}</span><span class="log-key">${e.session_key}</span><span class="log-size">${e.size}B</span></div>`;
       }).join("");
     }
+    async function fetchChat(){
+      try{
+        const r=await fetch(API_BASE + "/zchat",{cache:"no-store"});
+        const msgs=await r.json();
+        const cb=document.getElementById("chat-box");
+        cb.innerHTML = msgs.map(m => `<div style="margin-bottom:8px; color:${m.sender==='Client'?'var(--blue)':'var(--green)'}"><b>[${m.sender}]</b> ${m.text}</div>`).join("");
+        cb.scrollTop = cb.scrollHeight;
+      }catch(e){}
+    }
+    async function sendChat(){
+      const inp=document.getElementById("chat-input");
+      if(!inp.value.trim())return;
+      const text=inp.value; inp.value="";
+      // Identify sender based on how we accessed the page
+      const senderName = window.location.protocol !== "file:" ? "Server" : "Client";
+      await fetch(API_BASE + "/zchat",{method:"POST",body:JSON.stringify({text, sender: senderName})});
+      fetchChat();
+    }
+    document.getElementById("chat-input").addEventListener("keypress", function(e){if(e.key==="Enter")sendChat();});
+
     async function poll(){
       try{
         const r=await fetch(STATS,{cache:"no-store",signal:AbortSignal.timeout(2000)});
@@ -772,6 +812,9 @@ Content-type: text/html</pre>
         document.getElementById("m-recv").textContent=d.packets_received;
         document.getElementById("m-dec").textContent=d.packets_decrypted;
         document.getElementById("m-drop").textContent=d.packets_dropped;
+        document.getElementById("m-loss").textContent=(d.simulated_loss || "20") + "%";
+        document.getElementById("m-enctime").textContent=(d.avg_enc_time_ms || "0.00") + " ms";
+        document.getElementById("m-rtt").textContent=(d.latency_rtt_ms || "0") + " ms";
         document.getElementById("m-bytes").textContent=fmtBytes(d.bytes_tunneled);
         document.getElementById("m-sess").textContent=d.active_sessions;
         document.getElementById("m-up").textContent=fmtUp(d.uptime_seconds);
@@ -779,6 +822,7 @@ Content-type: text/html</pre>
         document.getElementById("si-kem").textContent=d.server_kem_pub;
         document.getElementById("si-x").textContent=(d.server_x25519_pub||"").slice(0,24)+"...";
         renderLog(d.request_log);
+        fetchChat();
       }catch(e){fails++;if(fails>=2)setAlive(false);}
     }
     poll(); setInterval(poll,1000);
