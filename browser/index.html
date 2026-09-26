@@ -751,6 +751,26 @@ Content-type: text/html</pre>
         <button onclick="sendChat()" style="background: var(--blue); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Send</button>
       </div>
     </div>
+
+    <!-- NEW SECURE FILE VAULT UI -->
+    <div class="dpanel">
+      <h4>Secure File Vault (Post-Quantum Transfer)</h4>
+      <div style="color: var(--muted2); font-size: 13px; margin-bottom: 12px;">Files are chunked and tunneled securely via UDP. Limit: 1MB.</div>
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="file" id="file-input" style="flex: 1; padding: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px;">
+        <button onclick="uploadFile()" id="upload-btn" style="background: var(--purple); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold;">Encrypt & Upload</button>
+      </div>
+      <div id="upload-progress" style="color: var(--green); margin-bottom: 15px; font-weight: bold;"></div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px;">
+        <h5 style="margin: 0; color: var(--text);">AVAILABLE FILES</h5>
+        <button onclick="fetchFiles()" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; cursor: pointer;">Refresh</button>
+      </div>
+      <div id="file-list" style="max-height: 120px; overflow-y: auto; font-family: monospace;">
+        <!-- File list here -->
+        <div style="color: var(--muted2);">No files uploaded yet.</div>
+      </div>
+    </div>
   </div>
 
   <div class="killbox">
@@ -805,6 +825,64 @@ Content-type: text/html</pre>
     }
     document.getElementById("chat-input").addEventListener("keypress", function(e){if(e.key==="Enter")sendChat();});
 
+    // FILE VAULT LOGIC
+    const CHUNK_SIZE = 20000; // 20KB per UDP packet to be safe
+    async function uploadFile() {
+      const fileInput = document.getElementById('file-input');
+      if (!fileInput.files.length) return;
+      const file = fileInput.files[0];
+      if (file.size > 1048576) { alert("File too large for demo! Max 1MB."); return; }
+      
+      const btn = document.getElementById('upload-btn');
+      const prog = document.getElementById('upload-progress');
+      btn.disabled = true;
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        const totalChunks = Math.ceil(base64.length / CHUNK_SIZE);
+        
+        for (let i = 0; i < totalChunks; i++) {
+          const chunkData = base64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+          prog.innerText = `Encrypting & Sending Chunk ${i+1}/${totalChunks}...`;
+          
+          await fetch(API_BASE + "/zupload", {
+            method: "POST",
+            body: JSON.stringify({ filename: file.name, chunk: i, total: totalChunks, data: chunkData })
+          });
+        }
+        prog.innerText = `✅ ${file.name} securely transferred via Z-Protocol!`;
+        btn.disabled = false;
+        fileInput.value = "";
+        fetchFiles();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function fetchFiles() {
+      try {
+        const r = await fetch(API_BASE + "/zfiles", {cache: "no-store"});
+        const files = await r.json();
+        const list = document.getElementById('file-list');
+        if (files.length === 0) { list.innerHTML = `<div style="color: var(--muted2);">No files in vault.</div>`; return; }
+        list.innerHTML = files.map(f => `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+          <span>${f.name} (${fmtBytes(f.size)})</span>
+          <button onclick="downloadFile('${f.name}')" style="background:var(--blue); color:#fff; border:none; border-radius:3px; cursor:pointer;">Download</button>
+        </div>`).join("");
+      } catch(e) {}
+    }
+
+    async function downloadFile(filename) {
+      try {
+        const r = await fetch(API_BASE + "/zdownload?file=" + encodeURIComponent(filename));
+        const data = await r.json();
+        const a = document.createElement('a');
+        a.href = "data:application/octet-stream;base64," + data.b64;
+        a.download = filename;
+        a.click();
+      } catch(e) { alert("Download failed"); }
+    }
+
     async function poll(){
       try{
         const r=await fetch(STATS,{cache:"no-store",signal:AbortSignal.timeout(2000)});
@@ -823,6 +901,7 @@ Content-type: text/html</pre>
         document.getElementById("si-x").textContent=(d.server_x25519_pub||"").slice(0,24)+"...";
         renderLog(d.request_log);
         fetchChat();
+        fetchFiles();
       }catch(e){fails++;if(fails>=2)setAlive(false);}
     }
     poll(); setInterval(poll,1000);

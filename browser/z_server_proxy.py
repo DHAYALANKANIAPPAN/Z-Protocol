@@ -151,6 +151,45 @@ class ZServerUDPProtocol(asyncio.DatagramProtocol):
                 response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
             elif first_line.startswith("OPTIONS /zstats"):
                 response = b"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, GET, OPTIONS\r\nAccess-Control-Allow-Headers: *\r\nContent-Length: 0\r\n\r\n"
+            
+            elif first_line.startswith("POST /zupload"):
+                body = http_request.split(b"\r\n\r\n")[1].decode(errors="ignore")
+                try:
+                    payload = json.loads(body)
+                    fn = payload.get("filename")
+                    chunk_idx = payload.get("chunk")
+                    data_b64 = payload.get("data")
+                    stats.setdefault("vault", {}).setdefault(fn, {})[chunk_idx] = data_b64
+                except: pass
+                response = b"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 2\r\nContent-Type: text/plain\r\n\r\nok"
+            
+            elif first_line.startswith("OPTIONS /zupload"):
+                response = b"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: POST, OPTIONS\r\nAccess-Control-Allow-Headers: *\r\nContent-Length: 0\r\n\r\n"
+            
+            elif first_line.startswith("GET /zfiles"):
+                vault = stats.get("vault", {})
+                files_list = []
+                for fn, chunks in vault.items():
+                    # Calculate total size in bytes (rough estimate from base64)
+                    size = sum(len(c) for c in chunks.values()) * 3 // 4
+                    files_list.append({"name": fn, "size": size})
+                body = json.dumps(files_list).encode()
+                response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
+            
+            elif first_line.startswith("GET /zdownload"):
+                # Extract filename from query string: GET /zdownload?file=abc.txt
+                try:
+                    query = first_line.split(" ")[1]
+                    fn = query.split("file=")[1].split("&")[0]
+                    import urllib.parse
+                    fn = urllib.parse.unquote(fn)
+                    chunks = stats.get("vault", {}).get(fn, {})
+                    # Assemble all chunks in order
+                    assembled_b64 = "".join(chunks[i] for i in sorted(chunks.keys()))
+                    body = json.dumps({"b64": assembled_b64}).encode()
+                except:
+                    body = b"{}"
+                response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
             else:
                 try:
                     r, w = await asyncio.open_connection("127.0.0.1", 8080)
@@ -243,6 +282,35 @@ async def main():
     
     app.router.add_get("/zhealth", handle_health)
     
+    async def handle_post_upload(request):
+        try:
+            data = await request.json()
+            fn = data.get("filename")
+            stats.setdefault("vault", {}).setdefault(fn, {})[data.get("chunk")] = data.get("data")
+        except: pass
+        return web.Response(text="ok")
+    app.router.add_post("/zupload", handle_post_upload)
+    app.router.add_options("/zupload", lambda r: web.Response())
+    
+    async def handle_get_files(request):
+        vault = stats.get("vault", {})
+        files_list = []
+        for fn, chunks in vault.items():
+            size = sum(len(c) for c in chunks.values()) * 3 // 4
+            files_list.append({"name": fn, "size": size})
+        return web.Response(text=json.dumps(files_list), content_type="application/json")
+    app.router.add_get("/zfiles", handle_get_files)
+    
+    async def handle_get_download(request):
+        try:
+            fn = request.query.get("file")
+            chunks = stats.get("vault", {}).get(fn, {})
+            assembled_b64 = "".join(chunks[i] for i in sorted(chunks.keys()))
+            return web.Response(text=json.dumps({"b64": assembled_b64}), content_type="application/json")
+        except:
+            return web.Response(text="{}", content_type="application/json")
+    app.router.add_get("/zdownload", handle_get_download)
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 9001)
