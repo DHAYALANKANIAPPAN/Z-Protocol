@@ -4,6 +4,7 @@ import struct
 import time
 import json
 import random
+import urllib.parse
 import oqs
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives import hashes
@@ -176,19 +177,24 @@ class ZServerUDPProtocol(asyncio.DatagramProtocol):
                 body = json.dumps(files_list).encode()
                 response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
             
-            elif first_line.startswith("GET /zdownload"):
-                # Extract filename from query string: GET /zdownload?file=abc.txt
+            elif first_line.startswith("GET /zdownload_info"):
                 try:
                     query = first_line.split(" ")[1]
-                    fn = query.split("file=")[1].split("&")[0]
-                    import urllib.parse
-                    fn = urllib.parse.unquote(fn)
+                    fn = urllib.parse.unquote(query.split("file=")[1].split("&")[0])
                     chunks = stats.get("vault", {}).get(fn, {})
-                    # Assemble all chunks in order
-                    assembled_b64 = "".join(chunks[i] for i in sorted(chunks.keys()))
-                    body = json.dumps({"b64": assembled_b64}).encode()
-                except:
-                    body = b"{}"
+                    body = json.dumps({"total_chunks": len(chunks)}).encode()
+                except: body = b'{"total_chunks": 0}'
+                response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
+
+            elif first_line.startswith("GET /zdownload_chunk"):
+                try:
+                    query = first_line.split(" ")[1]
+                    fn = urllib.parse.unquote(query.split("file=")[1].split("&")[0])
+                    chunk_idx = int(query.split("chunk=")[1].split("&")[0])
+                    chunks = stats.get("vault", {}).get(fn, {})
+                    chunk_data = chunks.get(chunk_idx, "")
+                    body = json.dumps({"data": chunk_data}).encode()
+                except: body = b'{"data": ""}'
                 response = f"HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: {len(body)}\r\nContent-Type: application/json\r\n\r\n".encode() + body
             else:
                 try:
@@ -301,15 +307,25 @@ async def main():
         return web.Response(text=json.dumps(files_list), content_type="application/json")
     app.router.add_get("/zfiles", handle_get_files)
     
-    async def handle_get_download(request):
+    async def handle_get_download_info(request):
         try:
             fn = request.query.get("file")
             chunks = stats.get("vault", {}).get(fn, {})
-            assembled_b64 = "".join(chunks[i] for i in sorted(chunks.keys()))
-            return web.Response(text=json.dumps({"b64": assembled_b64}), content_type="application/json")
+            return web.Response(text=json.dumps({"total_chunks": len(chunks)}), content_type="application/json")
         except:
-            return web.Response(text="{}", content_type="application/json")
-    app.router.add_get("/zdownload", handle_get_download)
+            return web.Response(text='{"total_chunks": 0}', content_type="application/json")
+    app.router.add_get("/zdownload_info", handle_get_download_info)
+
+    async def handle_get_download_chunk(request):
+        try:
+            fn = request.query.get("file")
+            chunk_idx = int(request.query.get("chunk", 0))
+            chunks = stats.get("vault", {}).get(fn, {})
+            chunk_data = chunks.get(chunk_idx, "")
+            return web.Response(text=json.dumps({"data": chunk_data}), content_type="application/json")
+        except:
+            return web.Response(text='{"data": ""}', content_type="application/json")
+    app.router.add_get("/zdownload_chunk", handle_get_download_chunk)
 
     runner = web.AppRunner(app)
     await runner.setup()

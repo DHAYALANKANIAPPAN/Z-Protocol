@@ -874,13 +874,26 @@ Content-type: text/html</pre>
 
     async function downloadFile(filename) {
       try {
-        const r = await fetch(API_BASE + "/zdownload?file=" + encodeURIComponent(filename));
-        const data = await r.json();
+        // 1. Get total chunks
+        const rInfo = await fetch(API_BASE + "/zdownload_info?file=" + encodeURIComponent(filename));
+        const info = await rInfo.json();
+        const total = info.total_chunks;
+        if (!total || total === 0) throw new Error("File not found on server");
+
+        // 2. Fetch all chunks
+        let assembled_b64 = "";
+        for (let i = 0; i < total; i++) {
+            const rChunk = await fetch(API_BASE + "/zdownload_chunk?file=" + encodeURIComponent(filename) + "&chunk=" + i);
+            const chunkData = await rChunk.json();
+            assembled_b64 += chunkData.data;
+        }
+
+        // 3. Reconstruct file and trigger download
         const a = document.createElement('a');
-        a.href = "data:application/octet-stream;base64," + data.b64;
+        a.href = "data:application/octet-stream;base64," + assembled_b64;
         a.download = filename;
         a.click();
-      } catch(e) { alert("Download failed"); }
+      } catch(e) { alert("Download failed: " + e.message); }
     }
 
     async function poll(){
